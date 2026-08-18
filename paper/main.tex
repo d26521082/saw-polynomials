@@ -112,11 +112,10 @@ All computations were performed by two independent methods (direct
 enumeration and the profile method), which agree with each other and
 reproduce every term published in the OEIS entries (22--43 terms per
 entry).  The polynomial coefficients are recovered by exact rational
-interpolation.  In addition, the defining computation has been
-implemented in the Lean~4 proof assistant, where concrete values such as
-$a_{3,2}(3)=44$ are certified by \texttt{native\_decide}; full
-formalization of Theorem~\ref{thm:main} is in progress.  Code and Lean
-sources are available from the author.
+interpolation.  In addition, all twenty conjectures have been formalized and
+machine-checked end to end in the Lean~4 proof assistant
+(Remark~\ref{rem:lean}).  Code and Lean sources are available from the
+author.
 
 \section{Definitions and conventions}\label{sec:defs}
 
@@ -309,21 +308,20 @@ step~2 captures; we did not seek a closed-form explanation.
 \end{remark}
 
 \begin{remark}[Formal verification]\label{rem:lean}
-The two-dimensional case has been fully formalized in Lean~4 with
-mathlib: the locality lemma, translation invariance, the single-axis
-census, and the polynomial form of Theorem~\ref{thm:main} for $d=2$ are
-proved as theorems (depending only on Lean's standard axioms), and the
-eight statements A188148--A188155 are machine-checked end to end, with
-the window constants and sub-threshold values evaluated by the compiler
-via \texttt{native\_decide} (adding only the standard
-\texttt{Lean.ofReduceBool} trust assumption).  For example, the Lean
-statement of A188148 reads: for all $n \ge 2$,
+All twenty statements have been formalized and machine-checked end to
+end in Lean~4 with mathlib.  For each $d \in \{2,3,4\}$, the locality
+lemma, translation invariance, the single-axis census, and the
+polynomial form of Theorem~\ref{thm:main} are proved as theorems
+depending only on Lean's standard axioms (\texttt{propext},
+\texttt{Classical.choice}, \texttt{Quot.sound}); the twenty OEIS entry
+theorems combine these with window constants and sub-threshold values
+evaluated by the compiler via \texttt{native\_decide}, adding only the
+standard \texttt{Lean.ofReduceBool} trust assumption.  For example, the
+Lean statement of A188148 reads: for all $n \ge 2$,
 $(A\,2\,n : \mathbb{Z}) = 12n^2 - 24n + 8$, where $A\,m\,n$ is the
-walk count defined from first principles.  The three- and
-four-dimensional cases follow the same blueprint and their formalization
-is in progress.  In addition, an independent list-based Lean
-implementation of the count is checked by \texttt{native\_decide}
-against the published OEIS data.
+walk count defined from first principles.  In addition, an independent
+list-based Lean implementation of the count is checked by
+\texttt{native\_decide} against the published OEIS data.
 \end{remark}
 
 \section{Extensions}\label{sec:extensions}
