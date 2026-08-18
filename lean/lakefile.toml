@@ -2,5 +2,10 @@ name = "SawProofs"
 version = "0.1.0"
 defaultTargets = ["SawProofs"]
 
+[[require]]
+name = "mathlib"
+scope = "leanprover-community"
+rev = "v4.22.0"
+
 [[lean_lib]]
 name = "SawProofs"

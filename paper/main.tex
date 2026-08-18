@@ -308,14 +308,22 @@ cancellation among boundary corrections, which the gap computation of
 step~2 captures; we did not seek a closed-form explanation.
 \end{remark}
 
-\begin{remark}[Formal verification]
-The counting function was re-implemented from the definition in Lean~4
-(mathlib-free, computable), and value certificates such as
-$a_{3,2}(2)=8$, $a_{3,2}(3)=44$, $a_{3,3}(3)=342$, $a_{2,4}(3)=432$ are
-proved by \texttt{native\_decide}, checking the Lean definition against
-the OEIS data.  Formalizing Theorem~\ref{thm:main} itself, so that the
-entire proof of each conjecture is machine-checked end to end, is in
-progress and will be reported elsewhere.
+\begin{remark}[Formal verification]\label{rem:lean}
+The two-dimensional case has been fully formalized in Lean~4 with
+mathlib: the locality lemma, translation invariance, the single-axis
+census, and the polynomial form of Theorem~\ref{thm:main} for $d=2$ are
+proved as theorems (depending only on Lean's standard axioms), and the
+eight statements A188148--A188155 are machine-checked end to end, with
+the window constants and sub-threshold values evaluated by the compiler
+via \texttt{native\_decide} (adding only the standard
+\texttt{Lean.ofReduceBool} trust assumption).  For example, the Lean
+statement of A188148 reads: for all $n \ge 2$,
+$(A\,2\,n : \mathbb{Z}) = 12n^2 - 24n + 8$, where $A\,m\,n$ is the
+walk count defined from first principles.  The three- and
+four-dimensional cases follow the same blueprint and their formalization
+is in progress.  In addition, an independent list-based Lean
+implementation of the count is checked by \texttt{native\_decide}
+against the published OEIS data.
 \end{remark}
 
 \section{Extensions}\label{sec:extensions}
