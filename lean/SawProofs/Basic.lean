@@ -43,7 +43,7 @@ def countFrom (n : Nat) : Nat → List Cell → Cell → Nat
 def allCells : Nat → Nat → List Cell
   | 0, _ => [[]]
   | d + 1, n =>
-    (List.range n).flatMap fun x => (allCells d n).map ((x : Int) :: ·)
+    (List.range n).flatMap fun x => (allCells d n).map (Int.ofNat x :: ·)
 
 /-- Total number of `k`-step self-avoiding walks (k cells, k−1 edges) in the
     `d`-dimensional box of side `n`, summed over all starting cells;
