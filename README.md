@@ -33,8 +33,6 @@ computation, and all thresholds are verified to be sharp.
 
 - `paper/` — LaTeX source and compiled PDF of the paper
 - `docs/proof.md` — theorem and proof draft (paper skeleton)
-- `docs/literature.md` — novelty check and related-work notes
-- `docs/oeis-edits.md` — paste-ready OEIS entry updates (pending arXiv ID)
 - `verify/` — Python verification suite (no third-party dependencies)
   - `saw.py` — brute-force and window-method (clipped-profile) engines,
     exact rational interpolation of the polynomials
