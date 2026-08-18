@@ -1,53 +1,89 @@
-# mathproject — OEIS 猜想證明計畫
+# saw-polynomials
 
-業餘數學研究專案:證明 OEIS 上長期掛著「conjectured / empirical」標記的公式,
-目標是更新 OEIS 條目、並累積成一篇可投稿的論文(如 Journal of Integer
-Sequences),配合 Lean 4 形式化驗證。
+Proofs of twenty conjectured ("empirical") formulas from the OEIS on
+fixed-length self-avoiding walk counts in grid boxes, with a complete
+Lean 4 formalization.
 
-## 目前目標:自避走多項式家族(20 個 OEIS 條目)
+Paper: `paper/main.tex` — *Fixed-length self-avoiding walks in grid boxes
+are eventually polynomial: proofs of twenty conjectured formulas from the
+OEIS* (Chen-Ting Lin, 2026).
 
-| 家族 | 條目 | 內容 |
+## The result
+
+| Family | OEIS entries | Statement |
 |---|---|---|
-| 2D | A188148–A188155 | n×n 方格上 k-step 自避走總數(k=3..10),猜想為 n 的二次式 |
-| 3D | A187164–A187170 | n×n×n(k=3..9),猜想為三次式 |
-| 4D | A188785–A188789 | n×n×n×n(k=2..6),猜想為四次式 |
+| 2D | A188148–A188155 | k-step SAWs on n×n, k = 3..10: quadratic in n |
+| 3D | A187164–A187170 | n×n×n, k = 3..9: cubic in n |
+| 4D | A188785–A188789 | n⁴, k = 2..6: quartic in n |
 
-核心定理(見 `docs/proof.md`):固定步數的自避走,起點的走法數只依賴
-「到各面邊界的截斷距離」(Lemma 1),按此分類求和即得:當 n ≥ 2(k−1)+1 時
-a(n) 是 n 的 d 次多項式,係數由有限次窗口枚舉決定。門檻以下的缺口用精確
-計算逐一驗證(有限檢查)。
+Here a *k-step walk* is a sequence of k distinct pairwise-adjacent cells
+(Hardin's OEIS convention: k cells = k−1 edges, each direction counted
+separately), summed over all starting positions. All twenty polynomial
+formulas were conjectured by R. H. Hardin in 2011 and remained unproved.
 
-注意 Hardin 的 OEIS 慣例:「k-step walk」= k 個相異相鄰格子(k−1 條邊),
-方向相反的走法分開計數(已用 A188148 的 example 區塊確認)。
+**Theorem** (`docs/proof.md`, Section 3 of the paper): the count from a
+given cell depends only on the cell's distances to the faces of the box,
+clipped at k−1 (locality). Grouping cells by clipped profile shows that
+for n ≥ 2k−1 the total is a polynomial in n of degree d, with
+coefficients given by finitely many window enumerations. The finitely
+many cases below each conjectured threshold are closed by exact
+computation, and all thresholds are verified to be sharp.
 
-## 目錄
+## Layout
 
-- `verify/saw.py` — 計數引擎:暴力枚舉 + 窗口法(截斷剖面分類)+ 精確有理內插
-- `verify/run_checks.py` — 驗證套件:`python3 run_checks.py [small|2d|3d|4d|all]`
-- `verify/oeis_data.json` — OEIS 官方數據(2026-08-18 由 JSON API 原樣抓取)
-- `docs/proof.md` — 定理與證明草稿(論文骨架)
+- `paper/` — LaTeX source and compiled PDF of the paper
+- `docs/proof.md` — theorem and proof draft (paper skeleton)
+- `docs/literature.md` — novelty check and related-work notes
+- `docs/oeis-edits.md` — paste-ready OEIS entry updates (pending arXiv ID)
+- `verify/` — Python verification suite (no third-party dependencies)
+  - `saw.py` — brute-force and window-method (clipped-profile) engines,
+    exact rational interpolation of the polynomials
+  - `run_checks.py` — full verification: `python3 run_checks.py all`
+    (~3 minutes)
+  - `oeis_data.json` — published OEIS terms, fetched verbatim from the
+    OEIS JSON API (2026-08-18)
+- `lean/` — Lean 4 formalization (see below)
 
-## 復現 Lean 驗證
+## Lean formalization
 
-任何人(包括未來的你)在乾淨的 Linux/macOS 機器上重現全部機器驗證:
+All twenty statements are machine-checked end to end:
+
+- `SawProofs/Dim2.lean`, `Dim3.lean`, `Dim4.lean` — for each dimension:
+  locality lemma, translation invariance, window reduction, the
+  dimension-independent single-axis census (proved once in `Dim2`), the
+  polynomial theorem `A_eq_poly` / `A3_eq_poly` / `A4_eq_poly`, and the
+  twenty OEIS entry theorems.
+- `SawProofs/Basic.lean` — an independent list-based implementation of
+  the count, checked by `native_decide` against published OEIS data.
+
+Axiom profile: the polynomial theorems depend only on Lean's standard
+axioms (`propext`, `Classical.choice`, `Quot.sound`); the entry theorems
+additionally use `Lean.ofReduceBool` (the standard `native_decide`
+compiler trust) for the window constants and sub-threshold values.
+
+## Reproducing the verification
+
+On a clean Linux/macOS machine:
 
 ```bash
-# 1. 裝 elan(Lean 版本管理器,約 1 分鐘)
+# 1. Install elan (Lean toolchain manager)
 curl -sSf https://elan.lean-lang.org/elan-init.sh | sh -s -- -y --default-toolchain none
 
-# 2. 進入 Lean 專案(toolchain 與 mathlib 版本由 lean-toolchain / lake-manifest.json 釘死)
+# 2. Enter the Lean project (toolchain and mathlib revision are pinned
+#    by lean-toolchain / lake-manifest.json)
 cd lean
 
-# 3. 下載 mathlib 預編譯快取(約 5.6GB,免去數小時的 mathlib 自行編譯)
+# 3. Fetch the prebuilt mathlib cache (~5.6 GB; avoids hours of compilation)
 lake exe cache get
 
-# 4. 重新驗證一切(我們的檔案從零重新檢查;含大型枚舉,約 30–60 分鐘)
+# 4. Re-verify everything from scratch (includes large enumerations;
+#    expect 30-60 minutes)
 lake build
 ```
 
-`Build completed successfully` = 全部 20 條定理通過檢查。
-
-之後可以稽核公理依賴(確認沒有偷用 sorry 或非標準公理):
+`Build completed successfully` means all twenty theorems check. To audit
+the axioms (and confirm there are no `sorry`s — any would surface as
+build warnings):
 
 ```bash
 echo 'import SawProofs
@@ -58,22 +94,20 @@ echo 'import SawProofs
 lake env lean /tmp/audit.lean
 ```
 
-預期輸出:主定理(`*_eq_poly`)只列 `[propext, Classical.choice, Quot.sound]`
-(Lean 標準三公理);條目定理多一個 `Lean.ofReduceBool`(`native_decide`
-的標準編譯器信任)。任何 `sorry` 都會在 build 時以 warning 顯示 — 沒有就是沒有。
+Expected: the `*_eq_poly` theorems list `[propext, Classical.choice,
+Quot.sound]`; the entry theorems add `Lean.ofReduceBool`.
 
-Python 驗證套件的復現:`cd verify && python3 run_checks.py all`(約 3 分鐘,
-無第三方依賴)。
+The Python suite: `cd verify && python3 run_checks.py all`.
 
-## 進度
+## Status
 
-- [x] 2026-08-18 選題調查:66 個帶猜想的條目,篩出四組候選
-- [x] 窗口法引擎 + 暴力枚舉交叉驗證(28 個測試)
-- [x] 2D 全家族(8 條)完整驗證:OEIS 全部數據吻合、精確多項式 = 猜想、門檻缺口關閉
-- [x] 4D 全家族(5 條)同上
-- [x] 3D 全家族(7 條)同上 — 至此 20 條猜想全部驗證完成
-- [x] Lean 4 + mathlib 環境、2D 主定理完整形式化(局部性、平移、census、多項式定理)
-- [x] A188148–A188155 八條 2D 猜想在 Lean 中端到端機器驗證(公理:標準三條 + ofReduceBool)
-- [x] 3D(A187164–A187170)與 4D(A188785–A188789)形式化完成 — 20 條猜想全部機器驗證
-- [x] 論文初稿(LaTeX,paper/main.tex,6 頁,編譯乾淨)
-- [ ] Lean 形式化元定理(mathlib)、OEIS 條目更新、社群回饋
+- [x] Survey and selection (2026-08-18)
+- [x] Window-method engine, cross-checked against brute force
+- [x] All 20 conjectures verified computationally (every published OEIS
+      term reproduced; exact polynomials = conjectures; threshold gaps
+      closed; thresholds sharp)
+- [x] Proof write-up and literature/novelty check
+- [x] Lean 4 formalization of all 20 statements (2D/3D/4D)
+- [x] Paper draft (6 pages, `paper/main.pdf`)
+- [ ] arXiv submission (in progress)
+- [ ] OEIS entry updates (pending arXiv ID)
