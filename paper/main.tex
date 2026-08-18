@@ -39,7 +39,7 @@ computations that close the finitely many cases below the threshold, we
 prove the conjectured (``empirical'') formulas recorded in twenty OEIS
 entries: A188148--A188155 ($d=2$, $3 \le k \le 10$), A187164--A187170
 ($d=3$, $3 \le k \le 9$), and A188785--A188789 ($d=4$, $2 \le k \le 6$),
-which had remained unproved since 2011--2018.  All computations are
+conjectured by R.~H.~Hardin in 2011 and open since.  All computations are
 reproducible, and key numerical certificates are formally verified in the
 Lean~4 proof assistant.
 \end{abstract}
@@ -50,7 +50,7 @@ The On-Line Encyclopedia of Integer Sequences (OEIS) \cite{OEIS} contains
 several thousand entries whose formulas are marked \emph{empirical} or
 \emph{conjectured}: closed forms, recurrences, or generating functions
 found by fitting the published terms, awaiting proof.  A substantial
-family of such entries is due to R.~H.~Hardin, who between 2010 and 2018
+family of such entries is due to R.~H.~Hardin, who in the early 2010s
 contributed extensive tables counting combinatorial configurations in
 finite grids, together with empirically observed formulas.  Proving
 Hardin's conjectures has recently become an active pastime:
@@ -80,7 +80,7 @@ Table~\ref{tab:results} and conjectured, in each case, that $a_{k,d}(n)$
 is given by an explicit polynomial of degree $d$ for all $n$ beyond a
 small explicit threshold $n_0(k,d)$.  These conjectures (and the
 equivalent conjectured generating functions and linear recurrences added
-later by C.~Barker) have remained open.  We prove all of them.
+by C.~Barker in 2018) have remained open.  We prove all of them.
 
 \begin{theorem}[Main theorem, informal]\label{thm:informal}
 For every fixed $k$ and $d$, the count $a_{k,d}(n)$ agrees for all
@@ -108,10 +108,10 @@ polynomiality (there, via transfer matrices) was likewise the engine
 turning empirical formulas into theorems.
 
 \paragraph{Verification and formalization.}
-All computations were performed by two independent methods (direct
-enumeration and the profile method), which agree with each other and
-reproduce every term published in the OEIS entries (22--43 terms per
-entry).  The polynomial coefficients are recovered by exact rational
+All computations were performed by two independent methods --- direct
+enumeration and the profile method --- which agree on an extensive common
+test set, and the profile method reproduces every term published in the
+OEIS entries (22--43 terms per entry).  The polynomial coefficients are recovered by exact rational
 interpolation.  In addition, all twenty conjectures have been formalized and
 machine-checked end to end in the Lean~4 proof assistant
 (Remark~\ref{rem:lean}).  Code and Lean sources are available from the
@@ -214,7 +214,7 @@ $\nu_n(e) = 1$ for $e \in E$, and $\nu_n = 0$ otherwise.  Collecting
 terms by the set $S$ of axes carrying the interior pair $(m,m)$ gives the
 displayed formula, a polynomial in $n-2m$ (hence in $n$) of degree at
 most $d$.  The degree-$d$ coefficient is the $S = \{1,\dots,d\}$ term,
-$w((m,m)^d) \ge 1$.
+$w((m,m)^d) \ge 1$ (at least the straight walk exists).
 \end{proof}
 
 \begin{corollary}[Generating functions and recurrences]\label{cor:gf}
@@ -299,10 +299,12 @@ conjectured in the OEIS entry.}
 \end{table}
 
 \begin{remark}[Sharpness of the thresholds]
-Below $n_0$ the polynomial genuinely fails (e.g.\ $a_{10,2}(3) = 0 \ne
-P_{10,2}(3)$): for small $n$ the clipped neighborhoods of opposite faces
-overlap and the census of Lemma~\ref{lem:census} no longer applies.  That
-the true threshold $n_0$ is smaller than our guaranteed $2k-1$ reflects
+The conjectured thresholds are exactly minimal: for every entry with
+$n_0 \ge 1$ we verified by exact computation that $a_{k,d}(n_0) \ne
+P_{k,d}(n_0)$ (e.g.\ $a_{10,2}(3) = 0$ while $P_{10,2}(3) = -13704$).
+For small $n$ the clipped neighborhoods of opposite faces overlap and the
+census of Lemma~\ref{lem:census} no longer applies.  That the true
+threshold $n_0$ is smaller than our guaranteed $2k-1$ reflects
 cancellation among boundary corrections, which the gap computation of
 step~2 captures; we did not seek a closed-form explanation.
 \end{remark}
@@ -367,8 +369,7 @@ A187162--A187170, A188784--A188789, A186861--A186870.
 
 \bibitem{DBK}
 R.~Dougherty-Bliss and M.~Kauers, \emph{Hardinian arrays},
-Electron.\ J.\ Combin.\ (2024); arXiv:2309.00487.
-% TODO: verify volume/article number before submission
+Electron.\ J.\ Combin.\ \textbf{31}(2) (2024), \#P2.9; arXiv:2309.00487.
 
 \bibitem{Kauers}
 M.~Kauers, \emph{Some D-finite and some possibly D-finite sequences in
@@ -377,13 +378,12 @@ the OEIS}, 2023.
 \bibitem{MNP}
 L.~Major, L.~N\'emeth, A.~Pahikkala, and L.~Szalay,
 \emph{Self-avoiding walks of specified lengths on rectangular grid
-graphs}, Aequationes Math.\ (2024).
-% TODO: verify volume/pages before submission
+graphs}, Aequationes Math.\ \textbf{98} (2024), 215--239.
 
 \bibitem{JCTA}
+H.~Belbachir, L.~Major, L.~N\'emeth, and L.~Szalay,
 \emph{Step-constrained self-avoiding walks on finite grids},
-J.\ Combin.\ Theory Ser.\ A (2025).
-% TODO: fill in authors and article number before submission
+J.\ Combin.\ Theory Ser.\ A \textbf{218} (2026), 106104.
 
 \bibitem{Lean}
 L.~de~Moura and S.~Ullrich, \emph{The Lean 4 theorem prover and
