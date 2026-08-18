@@ -1,0 +1,6 @@
+name = "SawProofs"
+version = "0.1.0"
+defaultTargets = ["SawProofs"]
+
+[[lean_lib]]
+name = "SawProofs"
