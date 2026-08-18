@@ -27,6 +27,44 @@ a(n) 是 n 的 d 次多項式,係數由有限次窗口枚舉決定。門檻以�
 - `verify/oeis_data.json` — OEIS 官方數據(2026-08-18 由 JSON API 原樣抓取)
 - `docs/proof.md` — 定理與證明草稿(論文骨架)
 
+## 復現 Lean 驗證
+
+任何人(包括未來的你)在乾淨的 Linux/macOS 機器上重現全部機器驗證:
+
+```bash
+# 1. 裝 elan(Lean 版本管理器,約 1 分鐘)
+curl -sSf https://elan.lean-lang.org/elan-init.sh | sh -s -- -y --default-toolchain none
+
+# 2. 進入 Lean 專案(toolchain 與 mathlib 版本由 lean-toolchain / lake-manifest.json 釘死)
+cd lean
+
+# 3. 下載 mathlib 預編譯快取(約 5.6GB,免去數小時的 mathlib 自行編譯)
+lake exe cache get
+
+# 4. 重新驗證一切(我們的檔案從零重新檢查;含大型枚舉,約 30–60 分鐘)
+lake build
+```
+
+`Build completed successfully` = 全部 20 條定理通過檢查。
+
+之後可以稽核公理依賴(確認沒有偷用 sorry 或非標準公理):
+
+```bash
+echo 'import SawProofs
+#print axioms SawProofs.D2.A_eq_poly
+#print axioms SawProofs.D2.A188148
+#print axioms SawProofs.D3.A187170
+#print axioms SawProofs.D4.A188789' > /tmp/audit.lean
+lake env lean /tmp/audit.lean
+```
+
+預期輸出:主定理(`*_eq_poly`)只列 `[propext, Classical.choice, Quot.sound]`
+(Lean 標準三公理);條目定理多一個 `Lean.ofReduceBool`(`native_decide`
+的標準編譯器信任)。任何 `sorry` 都會在 build 時以 warning 顯示 — 沒有就是沒有。
+
+Python 驗證套件的復現:`cd verify && python3 run_checks.py all`(約 3 分鐘,
+無第三方依賴)。
+
 ## 進度
 
 - [x] 2026-08-18 選題調查:66 個帶猜想的條目,篩出四組候選
