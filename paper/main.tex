@@ -1,0 +1,388 @@
+\documentclass[11pt]{article}
+
+\usepackage[margin=1.1in]{geometry}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{remark}[theorem]{Remark}
+\newtheorem{definition}[theorem]{Definition}
+
+\newcommand{\ZZ}{\mathbb{Z}}
+\newcommand{\GBox}{\mathcal{B}}
+
+\title{Fixed-length self-avoiding walks in grid boxes are eventually
+polynomial:\\ proofs of twenty conjectured formulas from the OEIS}
+
+% TODO: confirm preferred name form before submission
+\author{Chen-Ting Lin\thanks{\texttt{kiwi2002101517@gmail.com}}}
+\date{August 2026 (draft)}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+For fixed $k$ and $d$, let $a_{k,d}(n)$ denote the number of $k$-step
+self-avoiding walks in the $d$-dimensional grid box
+$\{0,\dots,n-1\}^d$, summed over all starting cells, where---following
+R.~H.~Hardin's convention in the On-Line Encyclopedia of Integer Sequences
+(OEIS)---a $k$-step walk is a sequence of $k$ distinct pairwise-adjacent
+cells and each direction is counted separately.  We prove that
+$a_{k,d}(n)$ agrees with a polynomial in $n$ of degree $d$ for all
+$n \ge 2k-1$, with coefficients determined by finitely many walk
+enumerations in boxes of side at most $2k-1$.  Combining this with exact
+computations that close the finitely many cases below the threshold, we
+prove the conjectured (``empirical'') formulas recorded in twenty OEIS
+entries: A188148--A188155 ($d=2$, $3 \le k \le 10$), A187164--A187170
+($d=3$, $3 \le k \le 9$), and A188785--A188789 ($d=4$, $2 \le k \le 6$),
+which had remained unproved since 2011--2018.  All computations are
+reproducible, and key numerical certificates are formally verified in the
+Lean~4 proof assistant.
+\end{abstract}
+
+\section{Introduction}
+
+The On-Line Encyclopedia of Integer Sequences (OEIS) \cite{OEIS} contains
+several thousand entries whose formulas are marked \emph{empirical} or
+\emph{conjectured}: closed forms, recurrences, or generating functions
+found by fitting the published terms, awaiting proof.  A substantial
+family of such entries is due to R.~H.~Hardin, who between 2010 and 2018
+contributed extensive tables counting combinatorial configurations in
+finite grids, together with empirically observed formulas.  Proving
+Hardin's conjectures has recently become an active pastime:
+Dougherty-Bliss and Kauers \cite{DBK} proved his conjectures on
+``Hardinian arrays'' via the transfer-matrix method, the key structural
+result being that the counts are eventually polynomial in the grid
+dimension; and individual entries have been settled directly on the OEIS,
+e.g.\ Corneth's 2023 proof note in entry A186864 (5-step king's tours).
+
+This paper settles one such family in a uniform way.  For fixed $k \ge 1$
+and $d \ge 1$ consider the box
+$\GBox_n^d = \{0,1,\dots,n-1\}^d \subseteq \ZZ^d$, with cells adjacent when
+they differ by $\pm 1$ in exactly one coordinate, and let
+\[
+  a_{k,d}(n) \;=\; \#\bigl\{\, k\text{-step self-avoiding walks in }
+  \GBox_n^d \,\bigr\},
+\]
+summed over all starting cells.  Here a \emph{$k$-step walk} is a sequence
+of $k$ \emph{distinct} pairwise-adjacent cells $c_1,\dots,c_k$ (thus
+traversing $k-1$ edges), and a walk and its reversal are counted
+separately.  This is Hardin's convention, which we confirmed against the
+example section of OEIS entry A188148; we adopt it so that our statements
+match the OEIS entries verbatim.
+
+Hardin computed $a_{k,d}(n)$ for the twenty pairs $(k,d)$ listed in
+Table~\ref{tab:results} and conjectured, in each case, that $a_{k,d}(n)$
+is given by an explicit polynomial of degree $d$ for all $n$ beyond a
+small explicit threshold $n_0(k,d)$.  These conjectures (and the
+equivalent conjectured generating functions and linear recurrences added
+later by C.~Barker) have remained open.  We prove all of them.
+
+\begin{theorem}[Main theorem, informal]\label{thm:informal}
+For every fixed $k$ and $d$, the count $a_{k,d}(n)$ agrees for all
+$n \ge 2k-1$ with a polynomial in $n$ of degree $d$ whose coefficients
+are determined by finitely many walk enumerations in boxes of side at
+most $2k-1$.  For the twenty pairs $(k,d)$ of
+Table~\ref{tab:results}, the resulting polynomials coincide with the
+conjectured OEIS formulas, and direct computation for the finitely many
+$n$ between the conjectured threshold and $2k-1$ completes the proof of
+each conjecture exactly as stated.
+\end{theorem}
+
+The structural part (Section~\ref{sec:theorem}) is an elementary locality
+argument: a walk of $m = k-1$ edges started at a cell $c$ only sees the
+box within $L^\infty$-distance $m$ of $c$, so the number of walks from
+$c$ depends only on the \emph{clipped profile} of $c$---its distance to
+each face of the box, capped at $m$.  Grouping cells by profile
+immediately yields eventual polynomiality.  We do not claim this
+observation is deep; its value lies in the uniform statement with an
+explicit threshold, which reduces each OEIS conjecture to a finite,
+machine-checkable computation, and in the resulting complete and
+independently verifiable proofs of twenty long-standing conjectured
+formulas.  This mirrors the situation in \cite{DBK}, where eventual
+polynomiality (there, via transfer matrices) was likewise the engine
+turning empirical formulas into theorems.
+
+\paragraph{Verification and formalization.}
+All computations were performed by two independent methods (direct
+enumeration and the profile method), which agree with each other and
+reproduce every term published in the OEIS entries (22--43 terms per
+entry).  The polynomial coefficients are recovered by exact rational
+interpolation.  In addition, the defining computation has been
+implemented in the Lean~4 proof assistant, where concrete values such as
+$a_{3,2}(3)=44$ are certified by \texttt{native\_decide}; full
+formalization of Theorem~\ref{thm:main} is in progress.  Code and Lean
+sources are available from the author.
+
+\section{Definitions and conventions}\label{sec:defs}
+
+Fix $d \ge 1$.  Cells are points of $\ZZ^d$; two cells are
+\emph{adjacent} when they differ by $\pm 1$ in exactly one coordinate.
+For $n \ge 1$ let $\GBox_n^d = \{0,\dots,n-1\}^d$.
+
+\begin{definition}[Walks; Hardin's convention]
+A \emph{$k$-step self-avoiding walk} in $\GBox_n^d$ is a tuple
+$(c_1,\dots,c_k)$ of distinct cells of $\GBox_n^d$ with $c_i$ adjacent to
+$c_{i+1}$ for $1 \le i < k$.  It traverses $m := k-1$ edges.  Reversals
+are counted as distinct walks.  We write $a_{k,d}(n)$ for the number of
+such walks, and, for a cell $c$, $f_n(c)$ for the number of walks with
+$c_1 = c$, so that $a_{k,d}(n) = \sum_{c \in \GBox_n^d} f_n(c)$.
+\end{definition}
+
+The term ``$k$-step'' for a walk on $k$ cells follows the OEIS entries;
+the example section of A188148 (``3-step'' walks occupying three cells)
+fixes the convention unambiguously.  Note $a_{1,d}(n) = n^d$ and
+$a_{2,d}(n) = 2d\,n^{d-1}(n-1)$ (each direction of each edge).
+
+\section{The eventual polynomiality theorem}\label{sec:theorem}
+
+Throughout this section $k, d$ are fixed and $m = k - 1$.
+
+\begin{lemma}[Locality]\label{lem:locality}
+For $c \in \GBox_n^d$ define the \emph{clipped profile}
+\[
+  \pi(c) \;=\; \bigl(\min(c^{(i)}, m),\ \min(n-1-c^{(i)}, m)\bigr)_{i=1}^{d}
+  \;\in\; \bigl(\{0,\dots,m\}^2\bigr)^d .
+\]
+Then $f_n(c)$ depends only on $\pi(c)$; that is, there is a function $w$
+on profiles, independent of $n$, with $f_n(c) = w(\pi(c))$ for all $n$
+and all $c \in \GBox_n^d$.
+\end{lemma}
+
+\begin{proof}
+A walk of $m$ edges from $c$ changes each coordinate by at most $1$ per
+step, hence stays inside
+$R(c) = \prod_{i=1}^{d} [\,c^{(i)}-\ell_i,\ c^{(i)}+r_i\,]$
+where $\ell_i = \min(c^{(i)}, m)$ and $r_i = \min(n-1-c^{(i)}, m)$:
+indeed a cell of $\GBox_n^d$ within $m$ steps of $c$ along axis $i$ lies
+between $\max(0, c^{(i)}-m) = c^{(i)}-\ell_i$ and
+$\min(n-1, c^{(i)}+m) = c^{(i)}+r_i$.  Conversely every cell of $R(c)$
+lies in $\GBox_n^d$.  Thus the walks from $c$ in $\GBox_n^d$ are exactly
+the walks from $c$ in the box $R(c)$, and translating $R(c)$ by $-c +
+(\ell_1,\dots,\ell_d)$ gives a bijection with walks in
+$\prod_i \{0,\dots,\ell_i+r_i\}$ started at $(\ell_1,\dots,\ell_d)$.
+The latter count depends only on
+$(\ell_i, r_i)_i = \pi(c)$.
+\end{proof}
+
+Each value $w(p)$ is a finite, explicitly computable integer: enumerate
+the walks of $m$ edges in a box of side lengths $\ell_i + r_i + 1 \le
+2m+1$.  By reflection and permutation of axes, $w$ is invariant under
+swapping $\ell_i \leftrightarrow r_i$ and permuting the $d$ pairs, which
+we exploit in computations.
+
+\begin{lemma}[Census]\label{lem:census}
+Let $n \ge 2m+1$.  Along one axis, as $x$ ranges over $\{0,\dots,n-1\}$,
+the clipped pair $\bigl(\min(x,m), \min(n-1-x,m)\bigr)$ takes the value
+$(i, m)$ exactly once for each $0 \le i \le m-1$ (namely $x = i$), the
+value $(m, j)$ exactly once for each $0 \le j \le m-1$ (namely
+$x = n-1-j$), and the value $(m, m)$ exactly $n - 2m$ times; no other
+values occur.
+\end{lemma}
+
+\begin{proof}
+If $x < m$ then, since $n - 1 - x > n - 1 - m \ge m$, the pair is
+$(x, m)$.  Symmetrically if $x > n-1-m$ the pair is $(m, n-1-x)$ with
+$n-1-x < m$.  The remaining $x \in [m, n-1-m]$, of which there are
+$n-2m$, give $(m,m)$.  The three ranges are disjoint because
+$m \le n-1-m$.
+\end{proof}
+
+\begin{theorem}[Eventual polynomiality]\label{thm:main}
+For all $n \ge 2m + 1 = 2k - 1$,
+\[
+  a_{k,d}(n) \;=\; \sum_{S \subseteq \{1,\dots,d\}} (n-2m)^{|S|}
+  \sum_{\substack{p = (p_1,\dots,p_d)\\ p_i = (m,m) \text{ for } i \in S\\
+      p_i \in E \text{ for } i \notin S}} w(p),
+\]
+where $E = \{(i,m) : 0 \le i < m\} \cup \{(m,j) : 0 \le j < m\}$ is the
+set of boundary pairs.  In particular $a_{k,d}(n)$ agrees on
+$n \ge 2k-1$ with a polynomial in $n$ of degree (at most) $d$, whose
+leading coefficient is the count $w\bigl((m,m)^d\bigr)$ of $k$-step walks
+from a central cell of the $(2m{+}1)^d$ box.
+\end{theorem}
+
+\begin{proof}
+By Lemma~\ref{lem:locality}, $a_{k,d}(n) = \sum_{p} N_n(p)\, w(p)$ where
+$N_n(p)$ is the number of cells with profile $p$.  Profiles factor across
+axes, so by Lemma~\ref{lem:census}
+$N_n(p) = \prod_{i=1}^d \nu_n(p_i)$ with $\nu_n((m,m)) = n-2m$,
+$\nu_n(e) = 1$ for $e \in E$, and $\nu_n = 0$ otherwise.  Collecting
+terms by the set $S$ of axes carrying the interior pair $(m,m)$ gives the
+displayed formula, a polynomial in $n-2m$ (hence in $n$) of degree at
+most $d$.  The degree-$d$ coefficient is the $S = \{1,\dots,d\}$ term,
+$w((m,m)^d) \ge 1$.
+\end{proof}
+
+\begin{corollary}[Generating functions and recurrences]\label{cor:gf}
+Fix $(k,d)$ and suppose $a_{k,d}(n) = P(n)$ for all $n > n_0$, with
+$P$ a polynomial of degree $d$.  Then $\sum_{n\ge1} a_{k,d}(n) x^n = Q(x) + R(x)/(1-x)^{d+1}$ for
+polynomials $Q, R$ with $\deg R \le d$, where $Q$ absorbs the terms
+$n \le n_0$, and
+$a_{k,d}(n) = \sum_{i=1}^{d+1} (-1)^{i+1}\binom{d+1}{i} a_{k,d}(n-i)$
+for $n > n_0 + d + 1$.  Hence the conjectured Barker generating functions
+and recurrences in the OEIS entries follow from the polynomial formulas.
+\end{corollary}
+
+\begin{proof}
+Standard: the $(d{+}1)$-st finite difference of a degree-$d$ polynomial
+vanishes.
+\end{proof}
+
+\section{Proofs of the twenty conjectures}\label{sec:results}
+
+For each pair $(k,d)$ in Table~\ref{tab:results} we proceed in three
+steps, all exact integer computations.
+
+\begin{enumerate}
+\item \textbf{Coefficients.}  Compute $a_{k,d}(n)$ by the profile method
+  (Lemmas~\ref{lem:locality}--\ref{lem:census}: enumerate $w(p)$ for the
+  finitely many profiles, then form the census sum) at $d+1$ points
+  $n \ge 2k-1$, and recover the polynomial $P_{k,d}$ of
+  Theorem~\ref{thm:main} by exact rational interpolation.  In all twenty
+  cases $P_{k,d}$ \emph{equals the conjectured OEIS polynomial,
+  coefficient by coefficient}.
+\item \textbf{Gap.}  The OEIS conjectures assert validity for
+  $n > n_0$ with $n_0 < 2k-1$.  For the finitely many
+  $n_0 < n < 2k-1$ we evaluate $a_{k,d}(n)$ exactly (the census sum is
+  valid for every $n$, using the true multiset of clipped pairs for that
+  $n$) and check $a_{k,d}(n) = P_{k,d}(n)$.  All checks pass.
+\item \textbf{Consistency.}  Independently, direct enumeration over all
+  starting cells agrees with the profile method wherever both were run,
+  and the profile method reproduces \emph{every} term published in the
+  OEIS entry (22--43 terms per entry, fetched verbatim from the OEIS).
+\end{enumerate}
+
+Steps 1--2, together with Theorem~\ref{thm:main}, constitute a complete
+proof of each conjectured formula; step 3 is an additional guard against
+implementation error.  By Corollary~\ref{cor:gf} the conjectured
+generating functions and recurrences in the same entries follow.
+
+\begin{table}[ht]
+\centering
+\small
+\begin{tabular}{@{}llll@{}}
+\toprule
+OEIS & $(k,d)$ & $a_{k,d}(n)$ for $n > n_0$ & $n_0$ \\
+\midrule
+A188148 & $(3,2)$  & $12n^2-24n+8$ & $1$ \\
+A188149 & $(4,2)$  & $36n^2-100n+56$ & $2$ \\
+A188150 & $(5,2)$  & $100n^2-360n+272$ & $3$ \\
+A188151 & $(6,2)$  & $284n^2-1228n+1152$ & $4$ \\
+A188152 & $(7,2)$  & $780n^2-3960n+4432$ & $5$ \\
+A188153 & $(8,2)$  & $2172n^2-12500n+16096$ & $6$ \\
+A188154 & $(9,2)$  & $5916n^2-38192n+55600$ & $7$ \\
+A188155 & $(10,2)$ & $16268n^2-115548n+186528$ & $8$ \\
+\midrule
+A187164 & $(3,3)$  & $30n^3-60n^2+24n$ & $1$ \\
+A187165 & $(4,3)$  & $150n^3-426n^2+312n-48$ & $2$ \\
+A187166 & $(5,3)$  & $726n^3-2640n^2+2688n-720$ & $3$ \\
+A187167 & $(6,3)$  & $3534n^3-15366n^2+19536n-7056$ & $4$ \\
+A187168 & $(7,3)$  & $16926n^3-85380n^2+128832n-57312$ & $5$ \\
+A187169 & $(8,3)$  & $81390n^3-463074n^2+801216n-418032$ & $6$ \\
+A187170 & $(9,3)$  & $387966n^3-2452704n^2+4766544n-2833872$ & $7$ \\
+\midrule
+A188785 & $(2,4)$  & $8n^4-8n^3$ & $0$ \\
+A188786 & $(3,4)$  & $56n^4-112n^3+48n^2$ & $1$ \\
+A188787 & $(4,4)$  & $392n^4-1128n^3+912n^2-192n$ & $2$ \\
+A188788 & $(5,4)$  & $2696n^4-9968n^3+11424n^2-4416n+384$ & $3$ \\
+A188789 & $(6,4)$  & $18584n^4-82552n^3+119616n^2-64320n+9984$ & $4$ \\
+\bottomrule
+\end{tabular}
+\caption{The twenty proved formulas.  In each case the polynomial is the
+$P_{k,d}$ of Theorem~\ref{thm:main} and the threshold $n_0$ is exactly as
+conjectured in the OEIS entry.}
+\label{tab:results}
+\end{table}
+
+\begin{remark}[Sharpness of the thresholds]
+Below $n_0$ the polynomial genuinely fails (e.g.\ $a_{10,2}(3) = 0 \ne
+P_{10,2}(3)$): for small $n$ the clipped neighborhoods of opposite faces
+overlap and the census of Lemma~\ref{lem:census} no longer applies.  That
+the true threshold $n_0$ is smaller than our guaranteed $2k-1$ reflects
+cancellation among boundary corrections, which the gap computation of
+step~2 captures; we did not seek a closed-form explanation.
+\end{remark}
+
+\begin{remark}[Formal verification]
+The counting function was re-implemented from the definition in Lean~4
+(mathlib-free, computable), and value certificates such as
+$a_{3,2}(2)=8$, $a_{3,2}(3)=44$, $a_{3,3}(3)=342$, $a_{2,4}(3)=432$ are
+proved by \texttt{native\_decide}, checking the Lean definition against
+the OEIS data.  Formalizing Theorem~\ref{thm:main} itself, so that the
+entire proof of each conjecture is machine-checked end to end, is in
+progress and will be reported elsewhere.
+\end{remark}
+
+\section{Extensions}\label{sec:extensions}
+
+The argument uses nothing about the nearest-neighbor step set beyond
+finiteness, and nothing about the box being a cube.
+
+\begin{enumerate}
+\item \emph{Other step sets.}  For any finite step set
+  $S \subseteq \ZZ^d \setminus \{0\}$ (king moves, knight moves, etc.)
+  with $M = \max_{s \in S} \|s\|_\infty$, the same proof shows that the
+  number of $k$-step $S$-walks (self-avoiding or not, or with any local
+  constraint that is a function of the walk shape) in $\GBox_n^d$ is
+  polynomial of degree $d$ in $n$ for $n \ge 2mM + 1$.  This covers, for
+  instance, Hardin's king-tour family A186861--A186870, one member of
+  which (A186864) was proved by Corneth by a related argument.
+\item \emph{Rectangular boxes.}  Replacing $\GBox_n^d$ by
+  $\prod_i \{0,\dots,n_i-1\}$ yields, verbatim, a multivariate polynomial
+  in $(n_1,\dots,n_d)$ once every $n_i \ge 2m+1$, proving the
+  row-and-column formulas in the associated OEIS arrays (A188147,
+  A187162, A188784).
+\item \emph{Walks with marked endpoints, closed walks.}  Any statistic
+  determined by the translation class of the walk and its clipped profile
+  admits the same treatment; e.g.\ counts of self-avoiding \emph{polygons}
+  by perimeter in $\GBox_n^d$ are likewise eventually polynomial.
+\end{enumerate}
+
+We intend the Lean formalization to cover the general statement in
+item~1.
+
+\section*{Acknowledgments}
+
+The computations, drafting, and Lean development were carried out with
+substantial assistance from Claude (Anthropic).  The author is
+responsible for all claims.
+
+\begin{thebibliography}{9}
+
+\bibitem{OEIS}
+OEIS Foundation Inc.\ (2026), \emph{The On-Line Encyclopedia of Integer
+Sequences}, \url{https://oeis.org}.  Entries A188147--A188155,
+A187162--A187170, A188784--A188789, A186861--A186870.
+
+\bibitem{DBK}
+R.~Dougherty-Bliss and M.~Kauers, \emph{Hardinian arrays},
+Electron.\ J.\ Combin.\ (2024); arXiv:2309.00487.
+% TODO: verify volume/article number before submission
+
+\bibitem{Kauers}
+M.~Kauers, \emph{Some D-finite and some possibly D-finite sequences in
+the OEIS}, 2023.
+
+\bibitem{MNP}
+L.~Major, L.~N\'emeth, A.~Pahikkala, and L.~Szalay,
+\emph{Self-avoiding walks of specified lengths on rectangular grid
+graphs}, Aequationes Math.\ (2024).
+% TODO: verify volume/pages before submission
+
+\bibitem{JCTA}
+\emph{Step-constrained self-avoiding walks on finite grids},
+J.\ Combin.\ Theory Ser.\ A (2025).
+% TODO: fill in authors and article number before submission
+
+\bibitem{Lean}
+L.~de~Moura and S.~Ullrich, \emph{The Lean 4 theorem prover and
+programming language}, CADE 2021.
+
+\end{thebibliography}
+
+\end{document}
